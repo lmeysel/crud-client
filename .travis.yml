@@ -1,5 +1,6 @@
-language: node_js
 if: tag IS present
+language: node_js
+node_js: lts/*
 cache:
   directories:
   - "~/.npm"
@@ -8,7 +9,6 @@ notifications:
 jobs:
   include:
   - script: npm run test:prod && npm run build
-    node_js: lts/*
     after_success:
     - npm run report-coverage
     - if [ "$TRAVIS_BRANCH" = "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
