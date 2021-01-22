@@ -25,4 +25,3 @@ deploy:
   on:
     tags: true
     repo: lmeysel/crud-client
-  skip_cleanup: 'true'
