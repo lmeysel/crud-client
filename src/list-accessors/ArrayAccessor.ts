@@ -8,7 +8,7 @@ export class ArrayAccessor<T, TId extends ItemId> implements IListAccessor<T, TI
    * @param items the array of items to be accessed by this accessor.
    * @param sort An optional sort function to be called whenever items are added to the list.
    */
-  constructor(private items: T[], private sort: SortFunction<T> = null) {
+  constructor(private items: T[], private sort?: (a: T, b: T) => number) {
     this.sortIfPossible()
   }
 

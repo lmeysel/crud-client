@@ -1,7 +1,7 @@
 import { IListAccessor } from '..'
 import { IApiConnector } from './IApiConnector'
 
-export interface IClientConfiguration<T, ItemId extends string | number> {
+export interface IClientConfiguration<T, TId extends string | number> {
   /**
    * The connector to use for the server communication.
    */
@@ -9,7 +9,7 @@ export interface IClientConfiguration<T, ItemId extends string | number> {
   /**
    * The list accessor to use.
    */
-  accessor: IListAccessor<T, ItemId>
+  accessor: IListAccessor<T, TId>
   /**
    * Provides information on how errors produced by the connector are handled.
    * * `'throw'`: Errors are thrown as exceptions.
@@ -20,7 +20,7 @@ export interface IClientConfiguration<T, ItemId extends string | number> {
   /**
    * Allows extracting the ID of the object. Defaults to `(item) => item['id']`.
    */
-  id?: IdCallback<T, ItemId>
+  id?: IdCallback<T, TId>
   /**
    * Allows modifying or inspecting the item before it is sent to the server.
    */
