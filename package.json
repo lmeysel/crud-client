@@ -1,18 +1,18 @@
 {
-	"name": "@alfred/crud-client",
+	"name": "alfred-crud-client",
 	"version": "0.0.3",
 	"description": "",
 	"keywords": [],
 	"main": "dist/crud-client.umd.js",
 	"module": "dist/crud-client.es5.js",
-	"typings": "dist/types/crud-client.d.ts",
+	"typings": "dist/types/index.d.ts",
 	"files": [
 		"dist"
 	],
 	"author": "lmeysel <lmeysel@users.noreply.github.com>",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/lmeysel/crud-client"
+		"url": "git+https://github.com/lmeysel/crud-client.git"
 	},
 	"license": "MIT",
 	"engines": {
@@ -129,5 +129,13 @@
 			"pre-commit": "lint-staged",
 			"pre-push": "npm run test:prod && npm run build"
 		}
+	},
+	"bugs": {
+		"url": "https://github.com/lmeysel/crud-client/issues"
+	},
+	"homepage": "https://github.com/lmeysel/crud-client#readme",
+	"directories": {
+		"doc": "docs",
+		"test": "test"
 	}
 }
