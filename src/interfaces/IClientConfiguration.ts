@@ -1,10 +1,15 @@
+import { IListAccessor } from '..'
 import { IApiConnector } from './IApiConnector'
 
-export interface IClientConfiguration<T, ItemId> {
+export interface IClientConfiguration<T, ItemId extends string | number> {
   /**
    * The connector to use for the server communication.
    */
   connector: IApiConnector<T>
+  /**
+   * The list accessor to use.
+   */
+  accessor: IListAccessor<T, ItemId>
   /**
    * Provides information on how errors produced by the connector are handled.
    * * `'throw'`: Errors are thrown as exceptions.

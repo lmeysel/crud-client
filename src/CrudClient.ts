@@ -18,14 +18,16 @@ export interface SelectedItemContext<T, TId> extends ItemContext<T, TId> {
 
 export class CrudClient<T, TId extends ItemId> {
   private config: IClientConfiguration<T, TId>
+  private items: IListAccessor<T, TId>
 
   selectionContext: SelectedItemContext<T, TId> = null
   selectedItem: T = null
   selectedForDeletion: T = null
   deletionContext: ItemContext<T, TId> = null
 
-  constructor(private items: IListAccessor<T, TId>, config: IClientConfiguration<T, TId>) {
+  constructor(config: IClientConfiguration<T, TId>) {
     this.config = Object.assign({}, CrudClientDefaultValues, config)
+    this.items = config.accessor
   }
 
   private getItemIndex(item: T, suggestedIndex: number) {

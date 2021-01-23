@@ -1,4 +1,4 @@
-export interface IListAccessor<T, V extends string | number> {
+export interface IListAccessor<T, TId extends ItemId> {
   /**
    * Adds an item to the list.
    * @returns the index of the newly added item
@@ -14,7 +14,7 @@ export interface IListAccessor<T, V extends string | number> {
    * @param getId A callback function for getting the id of the item. The callback will only be provided, if an item ID is given.
    * @returns The index of the item. -1 if item is not found.
    */
-  indexOf(itemOrId: T | V, getId?: IdCallback<T, V>): number
+  indexOf(itemOrId: T | TId, getId?: IdCallback<T, TId>): number
   /**
    * Sets the item at the given index.
    */

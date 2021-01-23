@@ -1,6 +1,7 @@
-import { getAxiosConnector } from '../test-helpers/TestServer'
+import { getAddress, getAxiosConnector, getRoute } from '../test-helpers/TestServer'
 import { database, IPerson } from '../test-helpers/TestData'
-import { IApiConnector } from '../../src'
+import { AxiosConnector, IApiConnector } from '../../src'
+import axios from 'axios'
 
 describe('Axios Connector', () => {
   let connector: IApiConnector<IPerson>
@@ -12,6 +13,16 @@ describe('Axios Connector', () => {
     const data = await connector.read()
     expect(data).toBeInstanceOf(Array)
     expect(data.length).toBe(database.count())
+  })
+  it('should read using default axios', async () => {
+    const [address, route] = await Promise.all([getAddress(), getRoute()])
+    const { baseURL } = axios.defaults
+    axios.defaults.baseURL = address + route
+    const connector = new AxiosConnector('')
+    const data = await connector.read()
+    expect(data).toBeInstanceOf(Array)
+    expect(data.length).toBe(database.count())
+    axios.defaults.baseURL = baseURL
   })
   it('should create', async () => {
     const data: IPerson = { age: 22, name: 'Bob Andrews' }
