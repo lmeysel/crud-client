@@ -1,9 +1,9 @@
-import { IListManager } from '../interfaces/IListAccessor'
+import { IListAccessor } from '../interfaces/IListAccessor'
 
 /**
  * Provides a list manager for the crud client based on an array. This manager will mutate the given array object.
  */
-export class ArrayAccessor<T, TId extends ItemId> implements IListManager<T, TId> {
+export class ArrayAccessor<T, TId extends ItemId> implements IListAccessor<T, TId> {
   constructor(private items: T[]) {}
   add(item: T) {
     return this.items.push(item) - 1
@@ -13,9 +13,9 @@ export class ArrayAccessor<T, TId extends ItemId> implements IListManager<T, TId
   }
   indexOf(itemOrId: T | TId, getId?: IdCallback<T, TId>): number {
     if (getId) {
-      return this.items.findIndex(item => getId(item) === itemOrId)
+      return this.items.findIndex((item) => getId(item) === itemOrId)
     } else {
-      return this.items.findIndex(item => item === itemOrId)
+      return this.items.findIndex((item) => item === itemOrId)
     }
   }
   setAt(index: number, item: T) {

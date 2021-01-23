@@ -1,9 +1,9 @@
 import { IClientConfiguration } from './interfaces/IClientConfiguration'
-import { IListManager } from './interfaces/IListAccessor'
+import { IListAccessor } from './interfaces/IListAccessor'
 
 export const CrudClientDefaultValues: Partial<IClientConfiguration<Object, ItemId>> = {
   createItem: /* istanbul ignore next */ () => ({}),
-  id: item => item['id']
+  id: (item) => item['id'],
 }
 
 export interface ItemContext<T, TId> {
@@ -24,7 +24,7 @@ export class CrudClient<T, TId extends ItemId> {
   selectedForDeletion: T = null
   deletionContext: ItemContext<T, TId> = null
 
-  constructor(private items: IListManager<T, TId>, config: IClientConfiguration<T, TId>) {
+  constructor(private items: IListAccessor<T, TId>, config: IClientConfiguration<T, TId>) {
     this.config = Object.assign({}, CrudClientDefaultValues, config)
   }
 
@@ -120,7 +120,7 @@ export class CrudClient<T, TId extends ItemId> {
       originalItem: item,
       editableCopy: item,
       id: null,
-      index: null
+      index: null,
     }
     this.selectedItem = item
   }
@@ -141,7 +141,7 @@ export class CrudClient<T, TId extends ItemId> {
       originalItem: item,
       editableCopy: Object.assign({}, item),
       id: this.config.id(item),
-      index: index
+      index: index,
     }
     this.selectedItem = this.selectionContext.editableCopy
     return true
@@ -161,7 +161,7 @@ export class CrudClient<T, TId extends ItemId> {
     this.deletionContext = {
       index,
       id: itemId,
-      originalItem: this.items.at(index)
+      originalItem: this.items.at(index),
     }
     this.selectedForDeletion = this.items.at(index)
     return true

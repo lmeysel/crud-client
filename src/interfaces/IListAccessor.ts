@@ -1,4 +1,4 @@
-export interface IListManager<T, V extends string | number> {
+export interface IListAccessor<T, V extends string | number> {
   /**
    * Adds an item to the list.
    * @returns the index of the newly added item
