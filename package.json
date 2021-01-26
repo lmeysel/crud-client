@@ -1,6 +1,6 @@
 {
 	"name": "alfred-crud-client",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "",
 	"keywords": [],
 	"main": "dist/crud-client.umd.js",
