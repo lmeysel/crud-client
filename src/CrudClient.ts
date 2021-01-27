@@ -10,6 +10,7 @@ export interface ItemContext<T, TId> {
   originalItem: Readonly<T>
   index: number
   id: TId
+  processing: boolean
 }
 export interface SelectedItemContext<T, TId> extends ItemContext<T, TId> {
   isNew: boolean
@@ -123,6 +124,7 @@ export class CrudClient<T, TId extends ItemId> {
       editableCopy: item,
       id: null,
       index: null,
+      processing: false,
     }
     this.selectedItem = item
   }
@@ -144,6 +146,7 @@ export class CrudClient<T, TId extends ItemId> {
       editableCopy: Object.assign({}, item),
       id: this.config.id(item),
       index: index,
+      processing: false,
     }
     this.selectedItem = this.selectionContext.editableCopy
     return true
@@ -152,8 +155,12 @@ export class CrudClient<T, TId extends ItemId> {
     if (!this.selectionContext) {
       throw Error('Cannot store item: No item selected. Make sure select() returned true')
     }
-    if (this.selectionContext.isNew) return this.storeCreate()
-    else return this.storeUpdate()
+    let res: Promise<boolean>
+    this.selectionContext.processing = true
+    if (this.selectionContext.isNew) res = this.storeCreate()
+    else res = this.storeUpdate()
+    res.finally(() => (this.selectionContext.processing = false))
+    return res
   }
   selectForDelete(itemId: TId) {
     const index = this.items.indexOf(itemId, this.config.id)
@@ -164,6 +171,7 @@ export class CrudClient<T, TId extends ItemId> {
       index,
       id: itemId,
       originalItem: this.items.at(index),
+      processing: false,
     }
     this.selectedForDeletion = this.items.at(index)
     return true
@@ -176,6 +184,7 @@ export class CrudClient<T, TId extends ItemId> {
     }
 
     let { originalItem, index, id } = this.deletionContext
+    this.deletionContext.processing = true
     this.deleteItem(originalItem, index)
     try {
       await this.config.connector.delete(id)
@@ -183,6 +192,8 @@ export class CrudClient<T, TId extends ItemId> {
       this.forwardError(x)
       this.items.insertAt(index, originalItem)
       return false
+    } finally {
+      this.deletionContext.processing = false
     }
     return true
   }
