@@ -1,3 +1,4 @@
+import { CancellationToken, CancellationTokenContext } from './CancellationToken'
 import { IClientConfiguration } from './interfaces/IClientConfiguration'
 import { IListAccessor } from './interfaces/IListAccessor'
 
@@ -42,6 +43,24 @@ export class CrudClient<T, TId extends ItemId> {
       }
     }
     return ret
+  }
+  private async beforeHook<TParam>(hook: CancellationTokenContext, param: TParam): Promise<boolean> {
+    const cbName = 'before' + hook.substr(0, 1).toUpperCase() + hook.substr(1)
+    const cb = this.config[cbName] as Function;
+    const ctoken = new CancellationToken(hook as any);
+    if (typeof cb === 'function') {
+      const res = param ? cb(param, ctoken) : cb(ctoken);
+      if (res instanceof Promise)
+        await res;
+      return !ctoken.isCancelled();
+    }
+    return true
+  }
+  private afterHook<TParam>(hook: CancellationTokenContext, param: TParam): void {
+    const cbName = 'after' + hook.substr(0, 1).toUpperCase() + hook.substr(1)
+    const cb = this.config[cbName] as Function;
+    if (typeof cb === 'function')
+      cb(param)
   }
   private reInsertItem(item: T, suggestedIndex: number) {
     const index = this.getItemIndex(item, suggestedIndex)
@@ -108,13 +127,18 @@ export class CrudClient<T, TId extends ItemId> {
 
   async refresh() {
     try {
+      if (!await this.beforeHook('refresh', null))
+        return false;
+
       const items = await this.config.connector.read()
       this.items.setList(items)
+
+      this.afterHook('refresh', items);
     } catch (x) {
       this.forwardError(x)
       return false
     }
-    return Promise.resolve(true)
+    return true;
   }
   create() {
     const item = this.config.createItem()
@@ -134,46 +158,66 @@ export class CrudClient<T, TId extends ItemId> {
     this.deletionContext = null
     this.selectedForDeletion = null
   }
-  select(id: TId) {
+  async select(id: TId) {
     const index = this.items.indexOf(id, this.config.id)
     if (index === -1) {
       return false
     }
-    const item = this.items.at(index)
+    const item = this.items.at(index), editableCopy = Object.assign({}, item)
+
+
+    if (!await this.beforeHook('select', editableCopy))
+      return false;
+
     this.selectionContext = {
       isNew: false,
       originalItem: item,
-      editableCopy: Object.assign({}, item),
+      editableCopy,
       id: this.config.id(item),
       index: index,
       processing: false,
     }
     this.selectedItem = this.selectionContext.editableCopy
+
+    this.afterHook('select', editableCopy);
     return true
   }
   async store(): Promise<boolean> {
     if (!this.selectionContext) {
       throw Error('Cannot store item: No item selected. Make sure select() returned true')
     }
+    if (!await this.beforeHook('store', this.selectionContext.editableCopy))
+      return false;
+
     let res: Promise<boolean>
     this.selectionContext.processing = true
     if (this.selectionContext.isNew) res = this.storeCreate()
     else res = this.storeUpdate()
-    res.finally(() => (this.selectionContext.processing = false))
+    res.finally(() => {
+      this.selectionContext.processing = false
+      this.afterHook('store', this.selectionContext.editableCopy);
+    })
     return res
   }
-  selectForDelete(itemId: TId) {
+  async selectForDelete(itemId: TId) {
     const index = this.items.indexOf(itemId, this.config.id)
     if (index === -1) {
       return false
     }
+    const originalItem = this.items.at(index);
+
+    if (!await this.beforeHook('selectForDelete', originalItem))
+      return false;
+
     this.deletionContext = {
       index,
       id: itemId,
-      originalItem: this.items.at(index),
+      originalItem,
       processing: false,
     }
     this.selectedForDeletion = this.items.at(index)
+    this.afterHook('selectForDelete', originalItem);
+
     return true
   }
   async delete() {
@@ -182,12 +226,15 @@ export class CrudClient<T, TId extends ItemId> {
         'Deleting item failed: No item selected. Make sure to selectForDelete() returns true.'
       )
     }
-
     let { originalItem, index, id } = this.deletionContext
+    if (!await this.beforeHook('delete', originalItem))
+      return false;
+
     this.deletionContext.processing = true
     this.deleteItem(originalItem, index)
     try {
       await this.config.connector.delete(id)
+      this.afterHook('delete', originalItem);
     } catch (x) {
       this.forwardError(x)
       this.items.insertAt(index, originalItem)

@@ -53,21 +53,17 @@ describe('CRUD Client', () => {
     )
 
     // fail due to non-existent ID
-    expect(client.select(database.lastInsertId() + 100)).toBe(false)
+    expect(await client.select(database.lastInsertId() + 100)).toBe(false)
 
     const item = database.randomExistingItem()
     const newName = 'Peter Shaw'
-    expect(client.select(item.id)).toBe(true)
+    expect(await client.select(item.id)).toBe(true)
     client.selectedItem.name = newName
 
     // a copy should be edited
     expect(item.name).not.toEqual(newName)
 
     const storePromise = client.store()
-
-    // optimitic response (before server answers)
-    expect(item.name).toEqual(newName)
-
     const result = await storePromise
     expect(result).toBe(true) // client returns true
   })
@@ -85,9 +81,9 @@ describe('CRUD Client', () => {
     const id = database.randomExistingId()
 
     // fail due to non-existent ID
-    expect(client.selectForDelete(database.lastInsertId() + 100)).toBe(false)
+    expect(await client.selectForDelete(database.lastInsertId() + 100)).toBe(false)
 
-    expect(client.selectForDelete(id)).toBe(true)
+    expect(await client.selectForDelete(id)).toBe(true)
     await client.delete()
     expect(database.select(id)).toBe(undefined)
   })
@@ -102,8 +98,8 @@ describe('CRUD Client', () => {
     const client = new CrudClient<IPerson, number>(
       connectorConfig({ accessor: new ArrayAccessor(items) })
     )
-    expect(client.select(database.randomExistingId())).toBe(true)
-    expect(client.selectForDelete(database.randomExistingId())).toBe(true)
+    expect(await client.select(database.randomExistingId())).toBe(true)
+    expect(await client.selectForDelete(database.randomExistingId())).toBe(true)
     client.cancel()
     await expect(client.delete()).rejects.toThrowError()
     await expect(client.store()).rejects.toThrowError()

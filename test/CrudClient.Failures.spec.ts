@@ -41,13 +41,10 @@ describe('CRUD Client (Failures)', () => {
     temporaryOverride('failStore', true)
 
     // select item and trigger storing
-    expect(client.select(id)).toBe(true)
+    expect(await client.select(id)).toBe(true)
     const oldName = client.selectedItem.name
     client.selectedItem.name = newName
-    const storing = client.store()
-
-    // optimistic response
-    expect(client.selectionContext.originalItem.name).toBe(newName)
+    const storing = client.store();
 
     // server fails
     expect(await storing).toBe(false)
@@ -64,7 +61,6 @@ describe('CRUD Client (Failures)', () => {
     client.create()
     const item = Object.assign(client.selectedItem, { name: 'Peter Shaw', age: 12 })
     const storing = client.store()
-    expect(items).toContain(item) // optimistic response
     expect(await storing).toBe(false) // server fails
     expect(items).not.toContain(item) // expect rollback
   })
@@ -74,7 +70,7 @@ describe('CRUD Client (Failures)', () => {
     )
     const id = database.randomExistingId()
     temporaryOverride('failDelete', true)
-    expect(client.selectForDelete(id)).toBe(true)
+    expect(await client.selectForDelete(id)).toBe(true)
     expect(await client.delete()).toBe(false)
   })
 
