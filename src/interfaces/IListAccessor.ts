@@ -1,34 +1,34 @@
 export interface IListAccessor<T, TId extends ItemId> {
-  /**
+	/**
    * Adds an item to the list.
    * @returns the index of the newly added item
    */
-  add(item: T): number
-  /**
+	add(item: T): number
+	/**
    * Gets the element at the given index.
    */
-  at(index: number)
-  /**
+	at(index: number)
+	/**
    * Gets the index of a certain item (or the item )
    * @param itemOrId The id of the element or the element itself.
    * @param getId A callback function for getting the id of the item. The callback will only be provided, if an item ID is given.
    * @returns The index of the item. -1 if item is not found.
    */
-  indexOf(itemOrId: T | TId, getId?: IdCallback<T, TId>): number
-  /**
+	indexOf(itemOrId: T | TId, getId?: IdCallback<T, TId>): number
+	/**
    * Sets the item at the given index.
    */
-  setAt(index: number, item: T)
-  /**
+	setAt(index: number, item: T)
+	/**
    * Inserts the item at the given index.
    */
-  insertAt(index: number, item: T)
-  /**
+	insertAt(index: number, item: T)
+	/**
    * Make the given items to the new list.
    */
-  setList(items: T[])
-  /**
+	setList(items: T[])
+	/**
    * Removes the item at the given index.
    */
-  removeAt(index: number)
+	removeAt(index: number)
 }
