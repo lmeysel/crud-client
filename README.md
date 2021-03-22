@@ -1,5 +1,6 @@
 # CRUD client
 
+[![Linting](https://img.shields.io/badge/lint-eslint-4B32C3?style=flat-square&logo=eslint)](https://eslint.org/)
 ![GitHub Actions](https://img.shields.io/github/workflow/status/lmeysel/crud-client/Node.js%20CI?style=flat-square&logo=github)
 [![Coveralls](https://img.shields.io/coveralls/lmeysel/crud-client.svg?style=flat-square&logo=coveralls)](https://coveralls.io/github/lmeysel/crud-client)
 [![Donate](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square)](https://paypal.me/lmeysel)
