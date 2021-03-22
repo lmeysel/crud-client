@@ -1,9 +1,8 @@
 # CRUD client
 
-[![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-[![Travis](https://img.shields.io/travis/com/lmeysel/crud-client)](https://travis-ci.com/lmeysel/crud-client)
-[![Coveralls](https://img.shields.io/coveralls/lmeysel/crud-client.svg)](https://coveralls.io/github/lmeysel/crud-client)
-[![Donate](https://img.shields.io/badge/donate-paypal-blue.svg)](https://paypal.me/lmeysel)
+![GitHub Actions](https://img.shields.io/github/workflow/status/lmeysel/crud-client/Node.js%20CI?style=flat-square&logo=github)
+[![Coveralls](https://img.shields.io/coveralls/lmeysel/crud-client.svg?style=flat-square&logo=coveralls)](https://coveralls.io/github/lmeysel/crud-client)
+[![Donate](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square)](https://paypal.me/lmeysel)
 
 **CAUTION** As of now, this library is more like an experiment and WIP.
 
