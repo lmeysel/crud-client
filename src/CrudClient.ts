@@ -99,6 +99,7 @@ export class CrudClient<T, TId extends ItemId> {
 			return false
 		}
 		if (serverResult) {
+			this.afterHook('store', serverResult);
 			Object.assign(originalItem, serverResult)
 			this.reInsertItem(originalItem, index)
 		}
@@ -119,6 +120,7 @@ export class CrudClient<T, TId extends ItemId> {
 			return false
 		}
 		if (serverResult) {
+			this.afterHook('store', serverResult);
 			Object.assign(item, serverResult)
 			this.reInsertItem(item, index)
 		}
@@ -195,7 +197,6 @@ export class CrudClient<T, TId extends ItemId> {
 		else res = this.storeUpdate()
 		res.finally(() => {
 			this.selectionContext.processing = false
-			this.afterHook('store', this.selectionContext.editableCopy);
 		})
 		return res
 	}
