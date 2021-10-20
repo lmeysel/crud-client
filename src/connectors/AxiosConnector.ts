@@ -9,15 +9,15 @@ export class AxiosConnector<T> implements IApiConnector<T> {
 	constructor(private route: string, private adapter: AxiosInstance = axios) { }
 
 	async read(): Promise<T[]> {
-		const { data } = await this.adapter.get(this.route)
+		const { data } = await this.adapter.get<T[]>(this.route)
 		return data
 	}
 	async create(item: T): Promise<T> {
-		const { data } = await this.adapter.post(this.route, item)
+		const { data } = await this.adapter.post<T>(this.route, item)
 		return data
 	}
 	async update(id: string | number, item: T): Promise<T> {
-		const { data } = await this.adapter.put(this.route + '/' + id, item)
+		const { data } = await this.adapter.put<T>(this.route + '/' + id, item)
 		return data
 	}
 	async delete(id: string | number): Promise<void> {

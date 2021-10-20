@@ -29,7 +29,7 @@ interface ConfigOverrides {
 }
 let overrides: Partial<ConfigOverrides>
 beforeEach(() => (overrides = {}))
-beforeAll(done => serverBoot.then(done))
+beforeAll(() => serverBoot)
 afterAll(() => server.close())
 
 app.get('/people', (req: Request, res: Response) => {
