@@ -18,6 +18,24 @@ describe('CRUD Client', () => {
 		expect(items.length).toBe(database.count())
 	})
 
+	it('should reconfigure (forget old config)', () => {
+		const sort = jest.fn();
+		const client = new CrudClient(connectorConfig({ listCreatedItems: true }));
+		expect((client as any).config.listCreatedItems).toStrictEqual(true); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+		client.configure(connectorConfig(), true);
+		expect((client as any).config.listCreatedItems).toBeUndefined(); // eslint-disable-line @typescript-eslint/no-explicit-any
+	})
+
+	it('should reconfigure (merge old config)', () => {
+		const sort = jest.fn();
+		const client = new CrudClient(connectorConfig());
+		expect((client as any).config.listCreatedItems).toBeUndefined(); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+		client.configure({ listCreatedItems: true });
+		expect((client as any).config.listCreatedItems).toStrictEqual(true); // eslint-disable-line @typescript-eslint/no-explicit-any
+	})
+
 	it('should get corrected item index', async () => {
 		const items = database.all()
 		const client = new CrudClient(connectorConfig({ accessor: new ArrayAccessor(items) }))

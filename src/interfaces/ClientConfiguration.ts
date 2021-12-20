@@ -24,8 +24,4 @@ export interface ClientConfiguration<T, TId extends string | number> {
    * Callback for creating a new item with standard data. Defaults to `() => ({})`.
    */
 	createItem?: () => T
-	/**
-   * Callback for sorting the items list.
-   */
-	sort?: (a: T, b: T) => number
 }
