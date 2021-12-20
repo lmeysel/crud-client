@@ -4,6 +4,7 @@ export * from './connectors/AxiosConnector'
 
 export * from './list-accessors/ArrayAccessor'
 
-export * from './interfaces/IApiConnector'
-export * from './interfaces/IClientConfiguration'
-export * from './interfaces/IListAccessor'
+export * from './interfaces/ApiConnector'
+export * from './interfaces/ClientEvents'
+export * from './interfaces/ClientConfiguration'
+export * from './interfaces/ListAccessor'

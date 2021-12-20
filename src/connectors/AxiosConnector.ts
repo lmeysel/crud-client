@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios'
-import { IApiConnector } from '../interfaces/IApiConnector'
+import { ApiConnector } from '../interfaces/ApiConnector'
 
-export class AxiosConnector<T> implements IApiConnector<T> {
+export class AxiosConnector<T> implements ApiConnector<T> {
 	/**
 	 * @param route The base route to access for REST requests.
 	 * @param adapter The axios instance to use for REST requests.

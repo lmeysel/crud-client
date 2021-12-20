@@ -2,18 +2,18 @@ import { CancellationToken } from '../src/CancellationToken'
 import {
 	ArrayAccessor,
 	CrudClient,
-	IClientConfiguration,
+	ClientConfiguration,
 } from '../src/index'
 import { DirectTestConnector } from './test-helpers/DirectTestConnector'
 import { database, IPerson } from './test-helpers/TestData'
 
 describe('CRUD Client (hooks)', () => {
-	const connectorConfig = async (overrides?: Partial<IClientConfiguration<IPerson, number>>) => {
+	const connectorConfig = async (overrides?: Partial<ClientConfiguration<IPerson, number>>) => {
 		const ret = overrides || {}
 		if (!('accessor' in ret)) ret.accessor = new ArrayAccessor(database.all());
 		if (!('connector' in ret)) ret.connector = new DirectTestConnector()
 		if (!('connectorErrors' in ret)) ret.connectorErrors = 'silent'
-		return ret as IClientConfiguration<IPerson, number>
+		return ret as ClientConfiguration<IPerson, number>
 	}
 
 	it('beforeStore', async () => {

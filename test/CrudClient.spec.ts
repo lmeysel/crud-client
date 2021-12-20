@@ -1,14 +1,14 @@
-import { ArrayAccessor, CrudClient, IClientConfiguration } from '../src/index'
+import { ArrayAccessor, CrudClient, ClientConfiguration } from '../src/index'
 import { database, IPerson } from './test-helpers/TestData'
 import { DirectTestConnector } from './test-helpers/DirectTestConnector'
 
 describe('CRUD Client', () => {
-	const connectorConfig = (overrides?: Partial<IClientConfiguration<IPerson, number>>) => {
+	const connectorConfig = (overrides?: Partial<ClientConfiguration<IPerson, number>>) => {
 		const ret = overrides || {}
 		if (!('accessor' in ret)) ret.accessor = new ArrayAccessor([])
 		if (!('connector' in ret)) ret.connector = new DirectTestConnector()
 		if (!('connectorErrors' in ret)) ret.connectorErrors = 'silent'
-		return ret as IClientConfiguration<IPerson, number>
+		return ret as ClientConfiguration<IPerson, number>
 	}
 
 	it('should get items', async () => {

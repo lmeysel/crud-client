@@ -1,4 +1,4 @@
-export interface IListAccessor<T, TId extends ItemId> {
+export interface ListAccessor<T, TId extends ItemId> {
 	/**
    * Adds an item to the list.
    * @returns the index of the newly added item

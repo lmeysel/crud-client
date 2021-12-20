@@ -1,4 +1,4 @@
-export interface IApiConnector<T> {
+export interface ApiConnector<T> {
 	/**
    * Sends an item to the server in order to create it.
    * @param item The item to send to the server.

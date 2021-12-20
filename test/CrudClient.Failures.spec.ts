@@ -1,18 +1,18 @@
 import {
 	ArrayAccessor,
 	CrudClient,
-	IClientConfiguration,
+	ClientConfiguration,
 } from '../src/index'
 import { database, IPerson } from './test-helpers/TestData'
 import { getAxiosConnector, temporaryOverride } from './test-helpers/TestServer'
 
 describe('CRUD Client (Failures)', () => {
-	const connectorConfig = async (overrides?: Partial<IClientConfiguration<IPerson, number>>) => {
+	const connectorConfig = async (overrides?: Partial<ClientConfiguration<IPerson, number>>) => {
 		const ret = overrides || {}
 		if (!('accessor' in ret)) ret.accessor = new ArrayAccessor([])
 		if (!('connector' in ret)) ret.connector = await getAxiosConnector()
 		if (!('connectorErrors' in ret)) ret.connectorErrors = 'silent'
-		return ret as IClientConfiguration<IPerson, number>
+		return ret as ClientConfiguration<IPerson, number>
 	}
 
 	it('should throw if trying to store without having anything selected', async () => {

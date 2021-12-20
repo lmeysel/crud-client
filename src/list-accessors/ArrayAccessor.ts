@@ -1,9 +1,9 @@
-import { IListAccessor } from '../interfaces/IListAccessor'
+import { ListAccessor } from '../interfaces/ListAccessor'
 
 /**
  * Provides a list manager for the crud client based on an array. This manager will mutate the given array object.
  */
-export class ArrayAccessor<T, TId extends ItemId> implements IListAccessor<T, TId> {
+export class ArrayAccessor<T, TId extends ItemId> implements ListAccessor<T, TId> {
 	/**
 	 * @param items the array of items to be accessed by this accessor.
 	 * @param sort An optional sort function to be called whenever items are added to the list.

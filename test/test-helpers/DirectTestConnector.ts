@@ -1,7 +1,7 @@
-import { IApiConnector } from '../../src/index'
+import { ApiConnector } from '../../src/index'
 import { database, IPerson } from './TestData'
 
-export class DirectTestConnector implements IApiConnector<IPerson> {
+export class DirectTestConnector implements ApiConnector<IPerson> {
 	read(): Promise<IPerson[]> {
 		return Promise.resolve(database.all())
 	}

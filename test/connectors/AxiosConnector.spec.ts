@@ -1,10 +1,10 @@
 import { getAddress, getAxiosConnector, getRoute } from '../test-helpers/TestServer'
 import { database, IPerson } from '../test-helpers/TestData'
-import { AxiosConnector, IApiConnector } from '../../src'
+import { AxiosConnector, ApiConnector } from '../../src'
 import axios from 'axios'
 
 describe('Axios Connector', () => {
-	let connector: IApiConnector<IPerson>
+	let connector: ApiConnector<IPerson>
 	beforeAll(async () => {
 		connector = await getAxiosConnector()
 	})
