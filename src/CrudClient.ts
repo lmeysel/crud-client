@@ -35,6 +35,21 @@ export class CrudClient<T, TId extends ItemId> {
 		this.items = config.accessor
 	}
 
+	/**
+	 * Re-configures the crud client.
+	 * @param config The new config to apply
+	 * @param clear True to forget the current configuration. Otherwise config object will be merged.
+	 */
+	public configure(config: Partial<ClientConfiguration<T, TId>>, clear?: false): void
+	public configure(config: ClientConfiguration<T, TId>, clear: true): void
+	public configure(config: ClientConfiguration<T, TId>, clear?: boolean): void {
+		if (clear)
+			this.config = Object.assign({}, CrudClientDefaultValues, config);
+		else
+			Object.assign(this.config, config);
+		this.items = this.config.accessor;
+	}
+
 	private getItemIndex(item: T, suggestedIndex: number) {
 		let ret = suggestedIndex
 		if (this.items.at(ret) !== item) {
@@ -104,7 +119,12 @@ export class CrudClient<T, TId extends ItemId> {
 		const item = this.selectionContext.editableCopy
 
 		// optimisitic response
-		const index = this.items.add(item)
+		let index = -1;
+		if (!this.config.listCreatedItems) {
+			index = this.items.add(item)
+		} else {
+			index = this.items.indexOf(item);
+		}
 
 		let serverResult: T
 		try {
@@ -147,9 +167,17 @@ export class CrudClient<T, TId extends ItemId> {
 			index: null,
 			processing: false,
 		}
-		this.selectedItem = item
+		this.selectedItem = item;
+		if (this.config.listCreatedItems) {
+			this.items.add(item);
+		}
 	}
 	cancel(): void {
+		const { selectionContext } = this;
+		if (selectionContext && selectionContext.isNew) {
+			let index = this.items.indexOf(selectionContext.originalItem);
+			this.items.removeAt(index);
+		}
 		this.selectedItem = null
 		this.selectionContext = null
 		this.deletionContext = null

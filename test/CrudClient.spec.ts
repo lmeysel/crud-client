@@ -19,7 +19,6 @@ describe('CRUD Client', () => {
 	})
 
 	it('should reconfigure (forget old config)', () => {
-		const sort = jest.fn();
 		const client = new CrudClient(connectorConfig({ listCreatedItems: true }));
 		expect((client as any).config.listCreatedItems).toStrictEqual(true); // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -28,7 +27,6 @@ describe('CRUD Client', () => {
 	})
 
 	it('should reconfigure (merge old config)', () => {
-		const sort = jest.fn();
 		const client = new CrudClient(connectorConfig());
 		expect((client as any).config.listCreatedItems).toBeUndefined(); // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -63,6 +61,41 @@ describe('CRUD Client', () => {
 		const inserted = database.select(database.lastInsertId())
 		expect(inserted).toMatchObject({ age, name })
 	})
+
+	it('should create item and store with listing item right after creation', async () => {
+		const age = -1,
+			name = 'asdf',
+			items = database.all()
+		const client = new CrudClient(
+			connectorConfig({ accessor: new ArrayAccessor(items, (a, b) => a.age - b.age), createItem: () => ({ age, name }), listCreatedItems: true })
+		)
+		const dbcount = database.count()
+		client.create()
+		expect(items[0]).toEqual({ age, name });
+		const newAge = items[1].age + .5;
+		items[0].age = newAge;
+		await client.store();
+
+		expect(items[1]).toEqual({ age: newAge, name, id: database.lastInsertId() });
+		expect(items.length).toBe(dbcount + 1);
+	});
+
+
+	it('should list created item and remove it after cancelling', async () => {
+		const age = -1,
+			name = 'asdf',
+			items = database.all()
+		const client = new CrudClient(
+			connectorConfig({ accessor: new ArrayAccessor(items, (a, b) => a.age - b.age), createItem: () => ({ age, name }), listCreatedItems: true })
+		)
+		const dbcount = database.count()
+		client.create()
+		expect(items[0]).toEqual({ age, name });
+		expect(items.length).toBe(dbcount + 1);
+
+		client.cancel();
+		expect(items.length).toBe(dbcount);
+	});
 
 	it('should edit a copy and store it on the server', async () => {
 		const items: IPerson[] = database.all()
