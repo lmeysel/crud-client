@@ -158,6 +158,7 @@ export class CrudClient<T, TId extends ItemId> {
 		return true;
 	}
 	create(): void {
+		this.cancel();
 		const item = this.config.createItem()
 		this.selectionContext = {
 			isNew: true,
@@ -184,6 +185,7 @@ export class CrudClient<T, TId extends ItemId> {
 		this.selectedForDeletion = null
 	}
 	async select(id: TId): Promise<boolean> {
+		this.cancel();
 		const index = this.items.indexOf(id, this.config.id)
 		if (index === -1) {
 			return false
