@@ -1,6 +1,8 @@
+import { ClientEvents } from './interfaces/ClientEvents'
 import { CancellationToken, CancellationTokenContext } from './CancellationToken'
 import { ClientConfiguration } from './interfaces/ClientConfiguration'
 import { ListAccessor } from './interfaces/ListAccessor'
+import { EventBus } from './EventBus'
 
 export const CrudClientDefaultValues: Partial<ClientConfiguration<Item, ItemId>> = {
 	createItem: /* istanbul ignore next */ () => ({}),
@@ -19,6 +21,7 @@ export interface SelectedItemContext<T, TId> extends ItemContext<T, TId> {
 }
 
 export class CrudClient<T, TId extends ItemId> {
+	private eventbus = new EventBus<ClientEvents<T>>();
 	private config: ClientConfiguration<T, TId>
 	private items: ListAccessor<T, TId>
 
@@ -44,24 +47,16 @@ export class CrudClient<T, TId extends ItemId> {
 		}
 		return ret
 	}
-	private async beforeHook<TParam>(hook: CancellationTokenContext, param: TParam): Promise<boolean> {
-		const cbName = 'before' + hook.substr(0, 1).toUpperCase() + hook.substr(1)
-		const cb = this.config[cbName] as Function; // eslint-disable-line @typescript-eslint/ban-types
-		const ctoken = new CancellationToken(hook);
-		if (typeof cb === 'function') {
-			const res = param ? cb(param, ctoken) : cb(ctoken);
-			if (res instanceof Promise)
-				await res;
-			return !ctoken.isCancelled();
-		}
-		return true
+
+	private async emitWithCancellationToken(hook: keyof ClientEvents<T>, context: CancellationTokenContext, item?: T): Promise<boolean> {
+		const ctoken = new CancellationToken(context);
+		if (item)
+			this.eventbus.emit(hook, item, ctoken);
+		else
+			this.eventbus.emit(hook, ctoken);
+		return !(await ctoken.cancelled);
 	}
-	private afterHook<TParam>(hook: CancellationTokenContext, param: TParam): void {
-		const cbName = 'after' + hook.substr(0, 1).toUpperCase() + hook.substr(1)
-		const cb = this.config[cbName] as Function; // eslint-disable-line @typescript-eslint/ban-types
-		if (typeof cb === 'function')
-			cb(param)
-	}
+
 	private reInsertItem(item: T, suggestedIndex: number) {
 		const index = this.getItemIndex(item, suggestedIndex)
 		this.items.setAt(index, item)
@@ -99,7 +94,7 @@ export class CrudClient<T, TId extends ItemId> {
 			return false
 		}
 		if (serverResult) {
-			this.afterHook('store', serverResult);
+			this.eventbus.emit('afterStore', serverResult);
 			Object.assign(originalItem, serverResult)
 			this.reInsertItem(originalItem, index)
 		}
@@ -120,7 +115,7 @@ export class CrudClient<T, TId extends ItemId> {
 			return false
 		}
 		if (serverResult) {
-			this.afterHook('store', serverResult);
+			this.eventbus.emit('afterStore', serverResult);
 			Object.assign(item, serverResult)
 			this.reInsertItem(item, index)
 		}
@@ -129,13 +124,13 @@ export class CrudClient<T, TId extends ItemId> {
 
 	async refresh(): Promise<boolean> {
 		try {
-			if (!await this.beforeHook('refresh', null))
+			if (!await this.emitWithCancellationToken('beforeRefresh', 'refresh'))
 				return false;
 
 			const items = await this.config.connector.read()
 			this.items.setList(items)
 
-			this.afterHook('refresh', items);
+			this.eventbus.emit('afterRefresh', items);
 		} catch (x) {
 			this.forwardError(x)
 			return false
@@ -168,7 +163,7 @@ export class CrudClient<T, TId extends ItemId> {
 		const item = this.items.at(index), editableCopy = Object.assign({}, item)
 
 
-		if (!await this.beforeHook('select', editableCopy))
+		if (!await this.emitWithCancellationToken('beforeSelect', 'select', editableCopy))
 			return false;
 
 		this.selectionContext = {
@@ -181,14 +176,14 @@ export class CrudClient<T, TId extends ItemId> {
 		}
 		this.selectedItem = this.selectionContext.editableCopy
 
-		this.afterHook('select', editableCopy);
+		this.eventbus.emit('afterSelect', editableCopy);
 		return true
 	}
 	async store(): Promise<boolean> {
 		if (!this.selectionContext) {
 			throw Error('Cannot store item: No item selected. Make sure select() returned true')
 		}
-		if (!await this.beforeHook('store', this.selectionContext.editableCopy))
+		if (!await this.emitWithCancellationToken('beforeStore', 'store', this.selectionContext.editableCopy))
 			return false;
 
 		let res: Promise<boolean>
@@ -207,7 +202,7 @@ export class CrudClient<T, TId extends ItemId> {
 		}
 		const originalItem = this.items.at(index);
 
-		if (!await this.beforeHook('selectForDelete', originalItem))
+		if (!await this.emitWithCancellationToken('beforeSelectForDelete', 'selectForDelete', originalItem))
 			return false;
 
 		this.deletionContext = {
@@ -217,7 +212,7 @@ export class CrudClient<T, TId extends ItemId> {
 			processing: false,
 		}
 		this.selectedForDeletion = this.items.at(index)
-		this.afterHook('selectForDelete', originalItem);
+		this.eventbus.emit('afterSelectForDelete', originalItem);
 
 		return true
 	}
@@ -228,14 +223,14 @@ export class CrudClient<T, TId extends ItemId> {
 			)
 		}
 		let { originalItem, index, id } = this.deletionContext
-		if (!await this.beforeHook('delete', originalItem))
+		if (!await this.emitWithCancellationToken('beforeDelete', 'delete', originalItem))
 			return false;
 
 		this.deletionContext.processing = true
 		this.deleteItem(originalItem, index)
 		try {
 			await this.config.connector.delete(id)
-			this.afterHook('delete', originalItem);
+			this.eventbus.emit('afterDelete', originalItem);
 		} catch (x) {
 			this.forwardError(x)
 			this.items.insertAt(index, originalItem)
@@ -244,5 +239,14 @@ export class CrudClient<T, TId extends ItemId> {
 			this.deletionContext.processing = false
 		}
 		return true
+	}
+	public on<Q extends keyof ClientEvents<T>>(event: Q, callable: ClientEvents<T>[Q]) {
+		this.eventbus.on(event, callable);
+	}
+	public once<Q extends keyof ClientEvents<T>>(event: Q, callable: ClientEvents<T>[Q]) {
+		this.eventbus.once(event, callable);
+	}
+	public off<Q extends keyof ClientEvents<T>>(event: Q, callable: ClientEvents<T>[Q]) {
+		this.eventbus.off(event, callable);
 	}
 }

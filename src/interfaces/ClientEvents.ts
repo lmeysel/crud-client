@@ -4,7 +4,7 @@ export type ClientEvents<T> = {
 	/**
 	 * Allows modifying or inspecting the item before it is sent to the server.
 	 */
-	beforeStore?: (item: T, cancellationToken: CancellationToken) => Promise<void> | void
+	beforeStore?: (item: T, cancellationToken: CancellationToken) => void
 	/**
 		* Allows modifying or inspecing the server response. If server did not respond an item, the item sent before is used as fallback.
 		*/
@@ -12,7 +12,7 @@ export type ClientEvents<T> = {
 	/**
 		* Called before an item is going to be selected for editing.
 		*/
-	beforeSelect?: (item: T, cancellationToken: CancellationToken) => Promise<void> | void
+	beforeSelect?: (item: T, cancellationToken: CancellationToken) => void
 	/**
 		* Called after an item has been selected for editing.
 		*/
@@ -20,7 +20,7 @@ export type ClientEvents<T> = {
 	/**
 		* Called before an item is going to be selected for deletion.
 		*/
-	beforeSelectForDelete?: (item: T, cancellationToken: CancellationToken) => Promise<void> | void
+	beforeSelectForDelete?: (item: T, cancellationToken: CancellationToken) => void
 	/**
 		* Called after an item has been selected for deletion.
 		*/
@@ -28,7 +28,7 @@ export type ClientEvents<T> = {
 	/**
 		* Called before the client refreshes the list of items.
 		*/
-	beforeRefresh?: (cancellationToken: CancellationToken) => Promise<void> | void
+	beforeRefresh?: (cancellationToken: CancellationToken) => void
 	/**
 		* Called after the items to refresh are received and applied to the items provider.
 		*/
@@ -36,7 +36,7 @@ export type ClientEvents<T> = {
 	/**
 		* Called before deletion command is sent to the server
 		*/
-	beforeDelete?: (item: T, cancellationToken: CancellationToken) => Promise<void> | void
+	beforeDelete?: (item: T, cancellationToken: CancellationToken) => void
 	/**
 		* Called after deletion command is sent to the server
 		*/

@@ -8,10 +8,9 @@ export interface IPerson {
 	age?: number
 }
 
-let lastInsertId = 1
+let lastInsertId = 0;
 function nextId() {
-	lastInsertId += 1 + Math.round(Math.random() * 5)
-	return lastInsertId
+	return ++lastInsertId
 }
 const data: IPerson[] = []
 function randomElement(key?: keyof IPerson) {
@@ -43,9 +42,9 @@ export const database = {
 		}
 	},
 	lastInsertId: () => lastInsertId,
-	generate: (size: number = 30) => {
+	generate: (size: number = 5) => {
 		data.length = size
-		lastInsertId = 1
+		lastInsertId = 0
 		for (let i = 0; i < size; i++) data[i] = { id: nextId(), ...database.randomNonExistingPerson() }
 	},
 	randomNonExistingPerson: (): IPerson => ({

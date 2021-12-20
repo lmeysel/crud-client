@@ -2,12 +2,12 @@ import { CancellationToken } from '../src/CancellationToken'
 import {
 	ArrayAccessor,
 	CrudClient,
-	ClientConfiguration,
+	ClientConfiguration
 } from '../src/index'
 import { DirectTestConnector } from './test-helpers/DirectTestConnector'
 import { database, IPerson } from './test-helpers/TestData'
 
-describe('CRUD Client (hooks)', () => {
+describe('CRUD Client (events)', () => {
 	const connectorConfig = async (overrides?: Partial<ClientConfiguration<IPerson, number>>) => {
 		const ret = overrides || {}
 		if (!('accessor' in ret)) ret.accessor = new ArrayAccessor(database.all());
@@ -16,13 +16,34 @@ describe('CRUD Client (hooks)', () => {
 		return ret as ClientConfiguration<IPerson, number>
 	}
 
+	it('register event once', async () => {
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		const beforeSelect = jest.fn();
+		client.once('beforeSelect', beforeSelect);
+		await client.select(1);
+		await client.select(2);
+		expect(beforeSelect).toBeCalledTimes(1);
+	});
+	it('register event permanent and remove', async () => {
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		const beforeSelect1 = jest.fn(), beforeSelect2 = jest.fn();
+		client.on('beforeSelect', beforeSelect1);
+		client.on('beforeSelect', beforeSelect2);
+		expect(await client.select(1)).toBe(true)
+		client.off('beforeSelect', beforeSelect2);
+		await client.select(2);
+		expect(beforeSelect2).toBeCalledTimes(1);
+		expect(beforeSelect1).toBeCalledTimes(2);
+	});
+
 	it('beforeStore', async () => {
 		const testItem = database.randomExistingItem();
 		const beforeStore = jest.fn((p: IPerson, c: CancellationToken) => {
 			expect(p).toStrictEqual(testItem);
 			expect(c.context()).toBe('store')
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeStore }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeStore', beforeStore);
 		expect(await client.select(testItem.id)).toBe(true);
 		expect(await client.store()).toBe(true);
 		expect(beforeStore).toBeCalled();
@@ -31,18 +52,18 @@ describe('CRUD Client (hooks)', () => {
 		const testItem = database.randomExistingItem();
 		const beforeStore = jest.fn((p: IPerson, c: CancellationToken) => {
 			expect(p).toStrictEqual(testItem);
-			expect(c.context()).toBe('store');
-			c.cancel()
+			expect(c.context()).toBe('store')
+			c.cancel();
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeStore }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeStore', beforeStore);
 		expect(await client.select(testItem.id)).toBe(true);
 		expect(await client.store()).toBe(false);
-		expect(beforeStore).toBeCalled();
-	});
-	it('afterStore', async () => {
+	}); it('afterStore', async () => {
 		const testItem = database.randomExistingItem();
 		const afterStore = jest.fn((p: IPerson) => { expect(p).toStrictEqual(testItem); });
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ afterStore }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('afterStore', afterStore);
 		expect(await client.select(testItem.id)).toBe(true);
 		expect(await client.store()).toBe(true);
 		expect(afterStore).toBeCalled();
@@ -52,22 +73,36 @@ describe('CRUD Client (hooks)', () => {
 		const beforeRefresh = jest.fn((c: CancellationToken) => {
 			expect(c.context()).toBe('refresh')
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeRefresh }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeRefresh', beforeRefresh)
 		expect(await client.refresh()).toBe(true);
 		expect(beforeRefresh).toBeCalled();
+	});
+	it('beforeRefresh (cancelled asynchronously)', async () => {
+		const beforeRefresh = jest.fn((c: CancellationToken) => {
+			c.await(new Promise<void>(r => setTimeout(() => {
+				c.cancel();
+				r();
+			}, 1)));
+		});
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeRefresh', beforeRefresh);
+		expect(await client.refresh()).toBe(false);
 	});
 	it('beforeRefresh (cancelled)', async () => {
 		const beforeRefresh = jest.fn((c: CancellationToken) => {
 			expect(c.context()).toBe('refresh');
 			c.cancel();
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeRefresh }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeRefresh', beforeRefresh);
 		expect(await client.refresh()).toBe(false);
 		expect(beforeRefresh).toBeCalled();
 	});
 	it('afterRefresh', async () => {
 		const afterRefresh = jest.fn((items: IPerson[]) => { expect(items).toStrictEqual(database.all()); });
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ afterRefresh }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('afterRefresh', afterRefresh);
 		expect(await client.refresh()).toBe(true);
 		expect(afterRefresh).toBeCalled();
 	});
@@ -78,7 +113,8 @@ describe('CRUD Client (hooks)', () => {
 			expect(p).toStrictEqual(testItem)
 			expect(c.context()).toBe('delete')
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeDelete }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeDelete', beforeDelete);
 		expect(await client.selectForDelete(testItem.id)).toBe(true);
 		expect(await client.delete()).toBe(true);
 		expect(beforeDelete).toBeCalled();
@@ -90,7 +126,8 @@ describe('CRUD Client (hooks)', () => {
 			expect(c.context()).toBe('delete');
 			c.cancel();
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeDelete }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeDelete', beforeDelete);
 		expect(await client.selectForDelete(testItem.id)).toBe(true);
 		expect(await client.delete()).toBe(false);
 		expect(beforeDelete).toBeCalled();
@@ -98,7 +135,8 @@ describe('CRUD Client (hooks)', () => {
 	it('afterDelete', async () => {
 		const testItem = database.randomExistingItem();
 		const afterDelete = jest.fn((p: IPerson) => { expect(p).toStrictEqual(testItem); });
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ afterDelete }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('afterDelete', afterDelete);
 		expect(await client.selectForDelete(testItem.id)).toBe(true);
 		expect(await client.delete()).toBe(true);
 		expect(afterDelete).toBeCalled();
@@ -110,7 +148,8 @@ describe('CRUD Client (hooks)', () => {
 			expect(p).toStrictEqual(testItem)
 			expect(c.context()).toBe('selectForDelete')
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeSelectForDelete }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeSelectForDelete', beforeSelectForDelete);
 		expect(await client.selectForDelete(testItem.id)).toBe(true);
 		expect(beforeSelectForDelete).toBeCalled();
 	});
@@ -121,14 +160,16 @@ describe('CRUD Client (hooks)', () => {
 			expect(c.context()).toBe('selectForDelete')
 			c.cancel();
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeSelectForDelete }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeSelectForDelete', beforeSelectForDelete);
 		expect(await client.selectForDelete(testItem.id)).toBe(false);
 		expect(beforeSelectForDelete).toBeCalled();
 	});
 	it('afterSelectForDelete', async () => {
 		const testItem = database.randomExistingItem();
 		const afterSelectForDelete = jest.fn((p: IPerson) => { expect(p).toStrictEqual(testItem); });
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ afterSelectForDelete }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('afterSelectForDelete', afterSelectForDelete)
 		expect(await client.selectForDelete(testItem.id)).toBe(true);
 		expect(afterSelectForDelete).toBeCalled();
 	});
@@ -139,7 +180,8 @@ describe('CRUD Client (hooks)', () => {
 			expect(p).toStrictEqual(testItem)
 			expect(c.context()).toBe('select')
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeSelect }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeSelect', beforeSelect);
 		expect(await client.select(testItem.id)).toBe(true);
 		expect(beforeSelect).toBeCalled();
 	});
@@ -150,14 +192,16 @@ describe('CRUD Client (hooks)', () => {
 			expect(c.context()).toBe('select')
 			c.cancel();
 		});
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ beforeSelect }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeSelect', beforeSelect);
 		expect(await client.select(testItem.id)).toBe(false);
 		expect(beforeSelect).toBeCalled();
 	});
 	it('afterSelect', async () => {
 		const testItem = database.randomExistingItem();
 		const afterSelect = jest.fn((p: IPerson) => { expect(p).toStrictEqual(testItem); });
-		const client = new CrudClient<IPerson, number>(await connectorConfig({ afterSelect }));
+		const client = new CrudClient<IPerson, number>(await connectorConfig());
+		client.on('beforeSelect', afterSelect);
 		expect(await client.select(testItem.id)).toBe(true);
 		expect(afterSelect).toBeCalled();
 	});

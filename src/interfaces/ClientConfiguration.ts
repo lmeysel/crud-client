@@ -1,8 +1,6 @@
 import { ListAccessor } from './ListAccessor'
 import { ApiConnector } from './ApiConnector'
-import { ClientEvents } from './ClientEvents'
-
-export interface ClientConfiguration<T, TId extends string | number> extends ClientEvents<T> {
+export interface ClientConfiguration<T, TId extends string | number> {
 	/**
    * The connector to use for the server communication.
    */
