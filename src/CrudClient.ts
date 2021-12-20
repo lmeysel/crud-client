@@ -158,6 +158,9 @@ export class CrudClient<T, TId extends ItemId> {
 		return true;
 	}
 	create(): void {
+		if (this.selectionContext?.isNew)
+			return;
+
 		this.cancel();
 		const item = this.config.createItem()
 		this.selectionContext = {
