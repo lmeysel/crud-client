@@ -45,6 +45,14 @@ describe('CRUD Client', () => {
 		expect((client as any).getItemIndex(item, index)).toBe(index - 1) // eslint-disable-line @typescript-eslint/no-explicit-any
 	})
 
+	it('should create item with config override', async () => {
+		const client = new CrudClient(
+			connectorConfig({ accessor: new ArrayAccessor([]), createItem: () => ({ name: 'foo' }) })
+		);
+		client.create({ name: 'bar' });
+		expect(client.selectedItem.name).toEqual('bar');
+	});
+
 	it('should create item and store', async () => {
 		const age = 100,
 			name = 'asdf',

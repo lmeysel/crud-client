@@ -158,12 +158,15 @@ export class CrudClient<T, TId extends ItemId> {
 		}
 		return true;
 	}
-	create(): void {
+	create(data?: Partial<T>): void {
 		if (this.selectionContext?.isNew)
 			return;
-
 		this.cancel();
+
 		const item = this.config.createItem();
+		if (data) {
+			Object.assign(item, data);
+		}
 		const copy = Object.assign({}, item);
 		this.selectionContext = {
 			isNew: true,
