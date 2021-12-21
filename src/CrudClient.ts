@@ -227,7 +227,8 @@ export class CrudClient<T, TId extends ItemId> {
 		if (this.selectionContext.isNew) res = this.storeCreate()
 		else res = this.storeUpdate()
 		res.finally(() => {
-			this.selectionContext.processing = false
+			if (this.selectionContext)
+				this.selectionContext.processing = false
 		})
 		return res
 	}
@@ -272,7 +273,8 @@ export class CrudClient<T, TId extends ItemId> {
 			this.items.insertAt(index, originalItem)
 			return false
 		} finally {
-			this.deletionContext.processing = false
+			if (this.deletionContext)
+				this.deletionContext.processing = false
 		}
 		return true
 	}
