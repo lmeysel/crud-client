@@ -116,29 +116,30 @@ export class CrudClient<T, TId extends ItemId> {
 		return true
 	}
 	private async storeCreate() {
-		const item = this.selectionContext.editableCopy
+		const item = this.selectionContext.originalItem,
+			copy = this.selectionContext.editableCopy;
+		this.selectionContext.isNew = false;
 
 		// optimisitic response
-		let index = -1;
-		if (!this.config.listCreatedItems) {
+		let index = this.items.indexOf(item);
+		if (index === -1) {
 			index = this.items.add(item)
-		} else {
-			index = this.items.indexOf(item);
 		}
 
-		let serverResult: T
+		let serverResult: Partial<T>
 		try {
-			serverResult = await this.config.connector.create(item)
+			serverResult = await this.config.connector.create(copy)
 		} catch (x) {
 			this.forwardError(x)
 			this.deleteItem(item, index)
 			return false
 		}
-		if (serverResult) {
-			this.eventbus.emit('afterStore', serverResult);
-			Object.assign(item, serverResult)
-			this.reInsertItem(item, index)
+		if (typeof serverResult !== 'object') {
+			serverResult = {};
 		}
+		this.eventbus.emit('afterStore', serverResult as T);
+		Object.assign(item, copy, serverResult);
+		this.reInsertItem(item, index)
 		return true
 	}
 
@@ -162,16 +163,17 @@ export class CrudClient<T, TId extends ItemId> {
 			return;
 
 		this.cancel();
-		const item = this.config.createItem()
+		const item = this.config.createItem();
+		const copy = Object.assign({}, item);
 		this.selectionContext = {
 			isNew: true,
 			originalItem: item,
-			editableCopy: item,
+			editableCopy: copy,
 			id: null,
 			index: null,
 			processing: false,
 		}
-		this.selectedItem = item;
+		this.selectedItem = copy;
 		if (this.config.listCreatedItems) {
 			this.items.add(item);
 		}
@@ -180,7 +182,8 @@ export class CrudClient<T, TId extends ItemId> {
 		const { selectionContext } = this;
 		if (selectionContext && selectionContext.isNew) {
 			let index = this.items.indexOf(selectionContext.originalItem);
-			this.items.removeAt(index);
+			if (index !== -1)
+				this.items.removeAt(index);
 		}
 		this.selectedItem = null
 		this.selectionContext = null

@@ -73,11 +73,11 @@ describe('CRUD Client', () => {
 		client.create()
 		expect(items[0]).toEqual({ age, name });
 		const newAge = items[1].age + .5;
-		items[0].age = newAge;
+		client.selectedItem.age = newAge;
 		await client.store();
 
-		expect(items[1]).toEqual({ age: newAge, name, id: database.lastInsertId() });
 		expect(items.length).toBe(dbcount + 1);
+		expect(items[1]).toEqual({ age: newAge, name, id: database.lastInsertId() });
 	});
 
 
