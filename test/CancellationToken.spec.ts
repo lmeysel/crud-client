@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { CancellationToken } from '../src/CancellationToken';
+import { CancellationToken } from '../src/misc/CancellationToken';
 
 describe('CancellationToken', () => {
 	it('does not cancel synchronous', async () => {

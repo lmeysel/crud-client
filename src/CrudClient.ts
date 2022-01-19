@@ -1,8 +1,8 @@
 import { ClientEvents } from './interfaces/ClientEvents'
-import { CancellationToken, CancellationTokenContext } from './CancellationToken'
+import { CancellationToken, CancellationTokenContext } from './misc/CancellationToken'
 import { ClientConfiguration } from './interfaces/ClientConfiguration'
 import { ListAccessor } from './interfaces/ListAccessor'
-import { EventBus } from './EventBus'
+import { EventBus } from './misc/EventBus'
 
 export const CrudClientDefaultValues: Partial<ClientConfiguration<Item, ItemId>> = {
 	createItem: /* istanbul ignore next */ () => ({}),

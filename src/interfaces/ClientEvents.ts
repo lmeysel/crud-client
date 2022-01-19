@@ -1,4 +1,4 @@
-import { CancellationToken } from '../CancellationToken';
+import { CancellationToken } from '../misc/CancellationToken';
 
 export type ClientEvents<T> = {
 	/**

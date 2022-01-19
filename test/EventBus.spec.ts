@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { EventBus } from '../src/EventBus';
+import { EventBus } from '../src/misc/EventBus';
 type Events = {
 	sthHappened(id: number): void
 }

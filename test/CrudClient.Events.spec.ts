@@ -1,4 +1,4 @@
-import { CancellationToken } from '../src/CancellationToken'
+import { CancellationToken } from '../src/misc/CancellationToken'
 import {
 	ArrayAccessor,
 	CrudClient,
