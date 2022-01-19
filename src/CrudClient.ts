@@ -26,9 +26,15 @@ export class CrudClient<T, TId extends ItemId> {
 	private items: ListAccessor<T, TId>
 
 	selectionContext: SelectedItemContext<T, TId> = null
-	selectedItem: T = null
-	selectedForDeletion: T = null
+	get selectedItem(): T {
+		if (this.selectionContext)
+			return this.selectionContext.editableCopy;
+	}
 	deletionContext: ItemContext<T, TId> = null
+	get selectedForDeletion(): T {
+		if (this.deletionContext)
+			return this.deletionContext.originalItem
+	}
 
 	constructor(config: ClientConfiguration<T, TId>) {
 		this.config = Object.assign({}, CrudClientDefaultValues, config)
@@ -140,6 +146,13 @@ export class CrudClient<T, TId extends ItemId> {
 		this.eventbus.emit('afterStore', serverResult as T);
 		Object.assign(item, copy, serverResult);
 		this.reInsertItem(item, index)
+		if (
+			this.config.listCreatedItems &&
+			this.selectionContext?.originalItem === item &&
+			'id' in item) {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			this.select((item as any).id as TId);
+		}
 		return true
 	}
 
@@ -176,7 +189,6 @@ export class CrudClient<T, TId extends ItemId> {
 			index: null,
 			processing: false,
 		}
-		this.selectedItem = copy;
 		if (this.config.listCreatedItems) {
 			this.items.add(item);
 		}
@@ -188,10 +200,8 @@ export class CrudClient<T, TId extends ItemId> {
 			if (index !== -1)
 				this.items.removeAt(index);
 		}
-		this.selectedItem = null
 		this.selectionContext = null
 		this.deletionContext = null
-		this.selectedForDeletion = null
 	}
 	async select(id: TId): Promise<boolean> {
 		this.cancel();
@@ -213,7 +223,6 @@ export class CrudClient<T, TId extends ItemId> {
 			index: index,
 			processing: false,
 		}
-		this.selectedItem = this.selectionContext.editableCopy
 
 		this.eventbus.emit('afterSelect', editableCopy);
 		return true
@@ -251,7 +260,6 @@ export class CrudClient<T, TId extends ItemId> {
 			originalItem,
 			processing: false,
 		}
-		this.selectedForDeletion = this.items.at(index)
 		this.eventbus.emit('afterSelectForDelete', originalItem);
 
 		return true
