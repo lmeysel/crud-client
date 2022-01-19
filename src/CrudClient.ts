@@ -149,9 +149,8 @@ export class CrudClient<T, TId extends ItemId> {
 		if (
 			this.config.listCreatedItems &&
 			this.selectionContext?.originalItem === item &&
-			'id' in item) {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			this.select((item as any).id as TId);
+			this.config.id(item)) {
+			this.select(this.config.id(item));
 		}
 		return true
 	}
